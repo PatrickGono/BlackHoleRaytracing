@@ -20,5 +20,6 @@ private:
 public:
 	RenderScene();
 	void render();
+	bool getShouldClose();
 };
 

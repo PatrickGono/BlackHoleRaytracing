@@ -33,3 +33,8 @@ void RenderScene::render()
 
 	m_window->swapBuffers();
 }
+
+bool RenderScene::getShouldClose()
+{
+	return m_window->getShouldClose();
+}
