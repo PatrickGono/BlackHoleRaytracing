@@ -14,7 +14,7 @@ void FPSCounter::countFPS()
 	if (m_currentTime - m_previousTime >= m_period)
 	{
 		// print FPS and miliseconds per frame
-		std::cout << m_nFrames / m_period << " / " << 1000.0 / m_nFrames << "\n";
+		std::cout << m_nFrames / m_period << " / " << 1000.0 * m_period / m_nFrames << "\n";
 		m_previousTime = m_currentTime;
 		m_nFrames = 0;
 	}
