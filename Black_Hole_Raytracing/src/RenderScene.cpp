@@ -21,6 +21,7 @@ RenderScene::RenderScene()
 	m_shaders[0].useShader();
 	m_shaders[0].setFloat("screenWidth", static_cast<float>(SCREEN_WIDTH));
 	m_shaders[0].setFloat("screenHeight", static_cast<float>(SCREEN_HEIGHT));
+	m_shaders[0].setFloat("time", static_cast<float>(glfwGetTime()));
 }
 
 void RenderScene::render()
@@ -29,6 +30,7 @@ void RenderScene::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	m_shaders[0].useShader();
+	m_shaders[0].setFloat("time", static_cast<float>(glfwGetTime()));
 	m_sceneMesh.renderMesh();
 
 	m_window->swapBuffers();
