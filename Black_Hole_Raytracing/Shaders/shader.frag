@@ -5,11 +5,13 @@ uniform float screenWidth;
 uniform float screenHeight;
 uniform float time;
 
+const float PHI = 1.6180339887498948482;
+const float PI = 3.14159265359;
 const int NUM_ITERATIONS = 4;
 const int NUM_AVERAGE = 10;
 const float MAX_DIST = 100000.0f;
 const float AMBIENT_FACTOR = 0.3f;
-const float SCATTERING_FACTOR = 0.1f;
+const float SCATTERING_FACTOR = 0.2f;
 
 vec3 getRayDirection()
 {
@@ -35,24 +37,43 @@ struct Sphere
 	vec3 color;
 };
 
-vec3 randomDirection2(vec3 surfaceNormal, vec3 seedPosition, vec3 seedDirection, int seedIteration)
+struct Torus
 {
-	vec3 result;
-	result.x = 2.0f * (0.5f - fract(sin(dot(seedPosition.x + seedDirection.x, seedIteration * 32.34567)) * 123456.789330123));
-	result.y = 2.0f * (0.5f - fract(sin(dot(seedPosition.y + seedDirection.y, seedIteration * 345.1789)) * 5678.123224567));
-	result.z = 2.0f * (0.5f - fract(sin(dot(seedPosition.z + seedDirection.z, seedIteration * 5.728901)) * 904.567893301));
-	return dot(surfaceNormal, result) < 0.0f ? -result : result;
+	vec3 center;
+	vec3 axis;
+	float radiusLarge;
+	float radiusSmall;
+	bool isLightSource;
+	vec3 color;
+};
+
+// Random number generator courtesy of Gold Noise ©2015 dcerisano@standard3d.com
+float randomFloat(vec3 xyz, float seed)
+{
+	return fract(tan(distance(xyz * PHI, xyz) * seed) * xyz.x);
 }
 
-vec3 randomDirection(vec3 seedPosition, vec3 seedDirection, int seedIteration)
+vec3 randomDirectionSphere(vec3 rayDirection, float seed)
 {
-	vec3 result;
-	result.x = 2.0f * (0.5f - fract(sin(dot(seedPosition.x + seedDirection.x, seedIteration * 32.34567)) * 123456.789330123));
-	result.y = 2.0f * (0.5f - fract(sin(dot(seedPosition.y + seedDirection.y, seedIteration * 345.1789)) * 5678.123224567));
-	result.z = 2.0f * (0.5f - fract(sin(dot(seedPosition.z + seedDirection.z, seedIteration * 5.728901)) * 904.567893301));
-	return normalize(result);
+	float rand1 = randomFloat(rayDirection, seed);
+	float rand2 = randomFloat(rayDirection, seed + 0.05);
+	float lambda = acos(2 * rand1 - 1.0f) - 0.5f * PI;
+	float phi = 2 * PI * rand2;
+
+	float x = cos(lambda) * cos(phi);
+	float y = cos(lambda) * sin(phi);
+	float z = sin(phi);
+
+	return vec3(x, y, z);
 }
 
+Intersection intersectTorus(vec3 rayOrigin, vec3 rayDirection, Torus torus)
+{
+	Intersection result = Intersection(false, 0.0f, vec3(0.0f), vec3(0.0f));
+	// to do
+	vec3 sphereCenterToOrigin = rayOrigin - torus.center;
+	return result;
+}
 
 Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, Sphere sphere)
 {
@@ -96,7 +117,7 @@ void main()
 		vec3 rayDirection = getRayDirection();
 		vec3 rayOrigin = vec3(0.0f, 0.0f, 0.0f);
 		vec3 rayColor = vec3(0.0f, 0.0f, 0.0f);
-		float absorptionFactor = 1.0f;
+		float absorptionFactor = 0.9f;
 	
 		for (int i = 0; i < NUM_ITERATIONS; i++)
 		{
@@ -133,7 +154,7 @@ void main()
 			
 			absorptionFactor *= 0.8f;
 			rayOrigin = closestIntersection.intersection;
-			rayDirection = normalize((1.0f - SCATTERING_FACTOR) * reflect(rayDirection, -closestIntersection.normal) + SCATTERING_FACTOR * randomDirection2(closestIntersection.normal, rayOrigin, rayDirection, rayIndex));
+			rayDirection = normalize((1.0f - SCATTERING_FACTOR) * reflect(rayDirection, -closestIntersection.normal) + SCATTERING_FACTOR * randomDirectionSphere(gl_FragCoord.xyz, fract(time * rayIndex))); 
 		}
 
 		finalColor += rayColor;
