@@ -7,11 +7,11 @@ uniform float time;
 
 const float PHI = 1.6180339887498948482;
 const float PI = 3.14159265359;
-const int NUM_ITERATIONS = 1;
-const int NUM_AVERAGE = 10;
+const int NUM_ITERATIONS = 2;
+const int NUM_AVERAGE = 20;
 const float MAX_DIST = 100000.0f;
 const float AMBIENT_FACTOR = 0.3f;
-const float SCATTERING_FACTOR = 0.2f;
+const float SCATTERING_FACTOR = 0.8f;
 
 vec3 getRayDirection()
 {
@@ -70,7 +70,6 @@ vec3 randomDirectionSphere(vec3 rayDirection, float seed)
 Intersection intersectTorus(vec3 rayOrigin, vec3 rayDirection, Torus torus)
 {
 	Intersection result = Intersection(false, 0.0f, vec3(0.0f), vec3(0.0f));
-	// to do
 	vec3 sphereCenterToOrigin = rayOrigin - torus.center;
 
 	float xi = torus.radiusLarge * torus.radiusLarge - torus.radiusSmall * torus.radiusSmall;
@@ -178,10 +177,6 @@ void main()
 	spheres[3] = Sphere(vec3(2.0f * sin(time), 3.0f, 20.0f), 2.0f, true, vec3(1.0f, 1.0f, 1.0f));
 	spheres[4] = Sphere(vec3(10.0f * sin(time), -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
 
-	const int NUM_TORUSES = 1;
-	Torus toruses[NUM_TORUSES];
-	toruses[0] = Torus(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f), 10.0f, 1.0f, true, vec3(1.0f, 1.0f, 0.7f));
-
 	vec3 finalColor = vec3(0.0f);
 
 	for (int rayIndex = 0; rayIndex < NUM_AVERAGE; rayIndex++)
@@ -195,7 +190,6 @@ void main()
 		{
 			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
 
-			/*
 			Sphere closestSphere;
 			for (int sphereIndex = 0; sphereIndex < NUM_SPHERES; sphereIndex++)
 			{
@@ -210,47 +204,20 @@ void main()
 					closestIntersection = intersection;
 					closestSphere = spheres[sphereIndex];
 				}
-			}*/
-
-			Torus closestTorus;
-			for (int torusIndex = 0; torusIndex < NUM_TORUSES; torusIndex++)
-			{
-				Intersection intersection = intersectTorus(rayOrigin, rayDirection, toruses[torusIndex]);
-				if (!intersection.isIntersect)
-				{
-					continue;
-				}
-
-				if (closestIntersection.dist > intersection.dist)
-				{
-					closestIntersection = intersection;
-					closestTorus = toruses[torusIndex];
-				}
 			}
 	
 			if (!closestIntersection.isIntersect)
 			{
-				//rayColor = absorptionFactor * vec3(0.7f, 0.85f, 1.0f) * max(0.0f, dot(vec3(0.0, 1.0, 0.0), rayDirection));
-				rayColor = vec3(0.0f, 1.0f, 0.0f);
+				rayColor = absorptionFactor * vec3(0.2f, 0.1f, 0.3f); //vec3(0.7f, 0.85f, 1.0f) * max(0.0f, dot(vec3(0.0, 1.0, 0.0), rayDirection));
 				break;
 			}
 	
-			/*
 			rayColor += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
 	
 			if (closestSphere.isLightSource)
 			{
 			    rayColor = absorptionFactor * closestSphere.color;
 			    break;
-			}
-			*/
-
-			rayColor += AMBIENT_FACTOR * absorptionFactor * closestTorus.color;
-
-			if (closestTorus.isLightSource)
-			{
-				rayColor = absorptionFactor * closestTorus.color;
-				break;
 			}
 			
 			absorptionFactor *= 0.8f;
@@ -260,6 +227,7 @@ void main()
 
 		finalColor += rayColor;
 	}
+
 	finalColor = finalColor / NUM_AVERAGE;
 	fragColor = vec4(finalColor, 1.0f);
 }
