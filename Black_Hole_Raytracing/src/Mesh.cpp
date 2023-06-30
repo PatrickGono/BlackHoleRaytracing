@@ -25,11 +25,15 @@ void Mesh::createMesh(GLfloat* vertices, unsigned int* indices, unsigned int nVe
 	// create one vertex buffer, bind it, and attach the data
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * nVertices, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * nVertices * 5, vertices, GL_STATIC_DRAW);
 
-	// position vectors (attribute 0): three coords -> stride 3, offset 0
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertices[0]) * 3, 0);
+	// position vectors (attribute 0): three coords -> stride 5, offset 0
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertices[0]) * 5, 0);
 	glEnableVertexAttribArray(0);
+
+	// texture coordinates (attribute 1): two coords -> stride 5, offset 3
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertices[0]) * 5, (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
 
 	// unbind buffers
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

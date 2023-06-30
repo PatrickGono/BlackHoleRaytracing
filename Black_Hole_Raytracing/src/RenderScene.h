@@ -3,23 +3,27 @@
 #include "Mesh.h"
 #include "Window.h"
 #include "Shader.h"
+#include "Texture.h"
 
 class RenderScene
 {
 private:
 	std::unique_ptr<Window> m_window;
-	std::vector<Shader> m_shaders;
+	std::vector<std::unique_ptr<Shader>> m_shaders;
 	Mesh m_sceneMesh;
 
-	GLuint m_screenWidthUniform{0};
-	GLuint m_screenHeightUniform{0};
-
-	static constexpr int SCREEN_WIDTH{1280};
+	static constexpr int SCREEN_WIDTH{1024};
 	static constexpr int SCREEN_HEIGHT{1024};
+
+	std::vector<float> m_data; //
+	Texture m_texture; //
 
 public:
 	RenderScene();
 	void render();
 	bool getShouldClose();
+
+	void renderTexture(); //
+	void renderTextureCPU(); //
 };
 

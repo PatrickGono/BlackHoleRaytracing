@@ -5,11 +5,10 @@ Texture::Texture() : m_width(0), m_height(0), m_textureID(0), m_textureData(0)
 	initializeTexture();
 }
 
-Texture::Texture(int width, int height) : m_width(width), m_height(height)
+Texture::Texture(int width, int height) : m_width(width), m_height(height), m_textureID(0), m_textureData(0)
 {
 	initializeTexture();
-	size_t textureDataSize{m_width * m_height * 3};
-	m_textureData = std::vector<unsigned char>(textureDataSize, 0);
+	m_textureData = std::vector<unsigned char>(width * height * 3, 0);
 }
 
 Texture::~Texture()
@@ -50,5 +49,4 @@ void Texture::clearTexture()
 	m_textureID = 0;
 	m_width = 0;
 	m_height = 0;
-	m_textureData.clear();
 }
