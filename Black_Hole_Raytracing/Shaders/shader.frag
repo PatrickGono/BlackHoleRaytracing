@@ -7,10 +7,11 @@ uniform float time;
 
 const float PHI = 1.6180339887498948482;
 const float PI = 3.14159265359;
-const int NUM_ITERATIONS = 2;
-const int NUM_AVERAGE = 20;
-const float MAX_DIST = 100000.0f;
-const float AMBIENT_FACTOR = 0.3f;
+const int NUM_ITERATIONS = 1;
+const int NUM_AVERAGE = 1;
+const int MAX_STEPS = 100;
+const float MAX_DIST = 100.0f;
+const float AMBIENT_FACTOR = 0.5f;
 const float SCATTERING_FACTOR = 0.8f;
 
 vec3 getRayDirection()
@@ -20,6 +21,16 @@ vec3 getRayDirection()
 	float fovFactor = 0.5f;
 	return normalize(vec3(fovFactor * relX, fovFactor * relY, 1.0f));
 }
+
+struct Ray
+{
+	vec3 origin;
+	vec3 direction;
+	vec3 color;
+	float totalDistance;
+	int totalIntersections;
+	int totalSteps;
+};
 
 struct Intersection
 {
@@ -50,7 +61,7 @@ struct Torus
 // Random number generator courtesy of Gold Noise ©2015 dcerisano@standard3d.com
 float randomFloat(vec3 xyz, float seed)
 {
-	return fract(tan(distance(xyz * PHI, xyz) * seed) * xyz.x);
+	return fract(sin(tan(distance(xyz * PHI, xyz) * seed) * xyz.x));
 }
 
 vec3 randomDirectionSphere(vec3 rayDirection, float seed)
@@ -142,9 +153,9 @@ Intersection intersectTorus(vec3 rayOrigin, vec3 rayDirection, Torus torus)
 	return result;
 }
 
-Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, Sphere sphere)
+Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, Sphere sphere)
 {
-	Intersection result = Intersection(false, 0.0f, vec3(0.0f), vec3(0.0f));
+	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
 
 	vec3 sphereCenterToOrigin = rayOrigin - sphere.center;
 	float product = dot(rayDirection, sphereCenterToOrigin);
@@ -155,7 +166,7 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, Sphere sphere)
 	}
 
 	float dist = -product - sqrt(discriminant);
-	if (dist < 0.001f || dist > MAX_DIST)
+	if (dist < -0.1f || dist > maxDist)
 	{
 		return result;
 	}
@@ -165,6 +176,21 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, Sphere sphere)
 	result.intersection = rayOrigin + dist * rayDirection;
 	result.normal = normalize(result.intersection - sphere.center);
 	return result;
+}
+
+void propagateRay(inout Ray ray, float dist)
+{
+	// ray.direction += vec3(0.0f, 0.01* sin(0.5 * time), 0.0f);
+	// ray.direction = normalize(ray.direction);
+	ray.totalSteps++;
+	ray.origin += dist * ray.direction;
+	ray.totalDistance += dist;
+	return;
+}
+
+float calculateStepLength(Ray ray)
+{
+	return 1.0f;
 }
 
 void main()
@@ -181,19 +207,29 @@ void main()
 
 	for (int rayIndex = 0; rayIndex < NUM_AVERAGE; rayIndex++)
 	{
-		vec3 rayDirection = getRayDirection();
-		vec3 rayOrigin = vec3(0.0f, 0.0f, 0.0f);
-		vec3 rayColor = vec3(0.0f, 0.0f, 0.0f);
-		float absorptionFactor = 0.9f;
-	
-		for (int i = 0; i < NUM_ITERATIONS; i++)
+		float absorptionFactor = 1.0f;
+		Ray ray;
+		ray.direction = getRayDirection();
+		ray.origin = vec3(0.0f, 0.0f, 0.0f);
+		ray.color = vec3(0.0f, 0.0f, 0.0f);
+		ray.totalDistance = 0.0f;
+		ray.totalSteps = 0;
+		ray.totalIntersections = 0;
+
+		while (ray.totalSteps <= MAX_STEPS && ray.totalDistance <= MAX_DIST)
 		{
+			if (ray.totalIntersections >= NUM_ITERATIONS)
+			{
+				break;
+			}
+
 			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+			float dist = calculateStepLength(ray);
 
 			Sphere closestSphere;
 			for (int sphereIndex = 0; sphereIndex < NUM_SPHERES; sphereIndex++)
 			{
-				Intersection intersection = intersectSphere(rayOrigin, rayDirection, spheres[sphereIndex]);
+				Intersection intersection = intersectSphere(ray.origin, ray.direction, dist, spheres[sphereIndex]);
 				if (!intersection.isIntersect)
 				{
 					continue;
@@ -207,25 +243,28 @@ void main()
 			}
 	
 			if (!closestIntersection.isIntersect)
-			{
-				rayColor = absorptionFactor * vec3(0.2f, 0.1f, 0.3f); //vec3(0.7f, 0.85f, 1.0f) * max(0.0f, dot(vec3(0.0, 1.0, 0.0), rayDirection));
-				break;
+			{	
+				propagateRay(ray, dist);
+				continue;
 			}
-	
-			rayColor += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
-	
-			if (closestSphere.isLightSource)
-			{
-			    rayColor = absorptionFactor * closestSphere.color;
-			    break;
-			}
-			
-			absorptionFactor *= 0.8f;
-			rayOrigin = closestIntersection.intersection;
-			rayDirection = normalize((1.0f - SCATTERING_FACTOR) * reflect(rayDirection, -closestIntersection.normal) + SCATTERING_FACTOR * randomDirectionSphere(gl_FragCoord.xyz, fract(time * rayIndex))); 
-		}
 
-		finalColor += rayColor;
+		    ray.totalIntersections++;
+		    ray.color += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
+	
+		    if (closestSphere.isLightSource)
+		    {
+		        ray.color = absorptionFactor * closestSphere.color;
+		        break;
+		    }
+		    
+		    absorptionFactor *= absorptionFactor;
+		    dist = distance(closestIntersection.intersection, ray.origin);
+		    propagateRay(ray, dist);
+
+		    ray.direction = normalize((1.0f - SCATTERING_FACTOR) * reflect(ray.direction, -closestIntersection.normal) + SCATTERING_FACTOR * randomDirectionSphere(gl_FragCoord.xyz, fract(time * rayIndex))); 
+		}
+	
+		finalColor += ray.color;
 	}
 
 	finalColor = finalColor / NUM_AVERAGE;
