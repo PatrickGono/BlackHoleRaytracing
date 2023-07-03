@@ -18,7 +18,7 @@ vec3 getRayDirection()
 {
 	float relX = 2.0f * (gl_FragCoord.x / screenWidth - 0.5f);
 	float relY = 2.0f * (gl_FragCoord.y / screenWidth - 0.5f);
-	float fovFactor = 0.5f;
+	float fovFactor = 0.3f;
 	return normalize(vec3(fovFactor * relX, fovFactor * relY, 1.0f));
 }
 
@@ -180,8 +180,16 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, S
 
 void propagateRay(inout Ray ray, float dist)
 {
-	// ray.direction += vec3(0.0f, 0.01* sin(0.5 * time), 0.0f);
-	// ray.direction = normalize(ray.direction);
+	float effectiveMass = 0.01f;
+	float coefficient = 0.5f * (1.0f + sin(0.5 * time));
+	vec3 blackHoleCenter = vec3(0.0f, 0.0f, 10.0f);
+
+	vec3 rayOriginToBlackHole = blackHoleCenter - ray.origin;
+	float distBH = length(rayOriginToBlackHole);
+
+	vec3 newDirection = ray.direction + effectiveMass * coefficient / pow(distBH, 4) * rayOriginToBlackHole;
+	ray.direction = normalize(newDirection);
+	
 	ray.totalSteps++;
 	ray.origin += dist * ray.direction;
 	ray.totalDistance += dist;
@@ -197,11 +205,11 @@ void main()
 {
 	const int NUM_SPHERES = 5;
 	Sphere spheres[NUM_SPHERES];
-	spheres[0] = Sphere(vec3(2.0f, -1.0f + sin(time), 10.0f), 1.5f, false, vec3(1.0f, 0.0f, 0.0f));
-	spheres[1] = Sphere(vec3(-2.0f, -1.5f + 0.5f * cos(time), 10.0f), 1.0f, false, vec3(0.0f, 1.0f, 0.0f));
-	spheres[2] = Sphere(vec3(2.0f * cos(2.0f * time), -2.0f, 30.0f), 1.5f, false, vec3(0.0f, 0.0f, 1.0f));
-	spheres[3] = Sphere(vec3(2.0f * sin(time), 3.0f, 20.0f), 2.0f, true, vec3(1.0f, 1.0f, 1.0f));
-	spheres[4] = Sphere(vec3(10.0f * sin(time), -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
+	spheres[0] = Sphere(vec3(2.0f, -1.0f, 20.0f), 1.5f, false, vec3(1.0f, 0.0f, 0.0f));
+	spheres[1] = Sphere(vec3(-2.0f, -1.5f, 25.0f), 1.0f, false, vec3(0.0f, 1.0f, 0.0f));
+	spheres[2] = Sphere(vec3(0.0f, 0.0f, 10.0f), 0.5f, false, vec3(0.0f, 0.0f, 0.0f));
+	spheres[3] = Sphere(vec3(1.0f, 1.0f, 25.0f), 3.0f, true, vec3(1.0f, 1.0f, 1.0f));
+	spheres[4] = Sphere(vec3(10.0f, -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
 
 	vec3 finalColor = vec3(0.0f);
 
