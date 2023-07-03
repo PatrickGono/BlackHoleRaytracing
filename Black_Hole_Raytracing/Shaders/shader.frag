@@ -40,6 +40,20 @@ struct Intersection
 	vec3 normal;
 };
 
+struct Plane
+{
+	vec3 center;
+	vec3 normal;
+};
+
+struct Disk
+{
+	vec3 center;
+	vec3 normal;
+	float radiusOuter;
+	float radiusInner;
+};
+
 struct Sphere
 {
 	vec3 center;
@@ -148,6 +162,54 @@ Intersection intersectTorus(vec3 rayOrigin, vec3 rayDirection, Torus torus)
 		result.dist = closestParam;
 		result.intersection = rayOrigin + closestParam * rayDirection;
 		result.normal = rayDirection;
+	}
+
+	return result;
+}
+
+Intersection intersectPlane(vec3 rayOrigin, vec3 rayDirection, float maxDist, Plane plane)
+{
+	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+
+	float denominator = dot(rayDirection, plane.normal);
+	if (denominator < 0.000001f)
+	{
+		return result;
+	}
+
+	vec3 rayOriginToPlaneCenter = plane.center - rayOrigin;
+	float dist = dot(rayOriginToPlaneCenter, plane.normal) / denominator;
+
+	if (dist < 0 || dist > maxDist)
+	{
+		return result;
+	}
+
+	result.isIntersect = true;
+	result.intersection = rayOrigin + dist * rayDirection;
+	result.normal = plane.normal;
+	return result;
+}
+
+Intersection intersectDisk(vec3 rayOrigin, vec3 rayDirection, float maxDist, Disk disk)
+{
+	Plane plane;
+	plane.center = disk.center;
+	plane.normal = disk.normal;
+
+	Intersection result = intersectPlane(rayOrigin, rayDirection, maxDist, plane);
+
+	if (!result.isIntersect)
+	{
+		return result;
+	}
+	
+	vec3 intersectionToDiskCenter = disk.center - result.intersection;
+	float distToCenter = length(intersectionToDiskCenter);
+
+	if (distToCenter < disk.radiusInner || distToCenter > disk.radiusOuter)
+	{
+		return Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
 	}
 
 	return result;
