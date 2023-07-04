@@ -9,7 +9,7 @@ const float PHI = 1.6180339887498948482;
 const float PI = 3.14159265359;
 const int NUM_ITERATIONS = 1;
 const int NUM_AVERAGE = 1;
-const int MAX_STEPS = 100;
+const int MAX_STEPS = 1000;
 const float MAX_DIST = 100.0f;
 const float AMBIENT_FACTOR = 0.5f;
 const float SCATTERING_FACTOR = 0.8f;
@@ -245,14 +245,13 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, S
 
 void propagateRay(inout Ray ray, float dist)
 {
-	float effectiveMass = 0.01f;
-	float coefficient = 1.5f * (1.0f + sin(0.5 * time));
+	float effectiveMass = 0.001f;
 	vec3 blackHoleCenter = vec3(0.0f, 0.0f, 10.0f);
 
 	vec3 rayOriginToBlackHole = blackHoleCenter - ray.origin;
 	float distBH = length(rayOriginToBlackHole);
 
-	vec3 newDirection = ray.direction + effectiveMass * coefficient / pow(distBH, 4) * rayOriginToBlackHole;
+	vec3 newDirection = ray.direction + effectiveMass / pow(distBH, 4) * rayOriginToBlackHole;
 	ray.direction = normalize(newDirection);
 	
 	ray.totalSteps++;
@@ -263,7 +262,16 @@ void propagateRay(inout Ray ray, float dist)
 
 float calculateStepLength(Ray ray)
 {
-	return 1.0f;
+	vec3 blackHoleCenter = vec3(0.0f, 0.0f, 10.0f);
+	float effectiveMass = 0.1f;
+	float coefficient = 0.1f; // * (1.0f + sin(0.5 * time));
+
+	vec3 rayOriginToBlackHole = blackHoleCenter - ray.origin;
+	float distBH = length(rayOriginToBlackHole);
+	
+	float dist = coefficient * effectiveMass * pow(distBH, 4);
+	
+	return min(dist, 1.0f);
 }
 
 void main()
@@ -278,7 +286,7 @@ void main()
 
 	const int NUM_DISKS = 1;
 	Disk disks[NUM_DISKS];
-	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.0f, sin(time), cos(time))), 1.5f, 0.5f, vec3(1.0f, 0.7f, 0.0f));
+	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.0f, sin(0.3f * time), cos(0.3f * time))), 1.5f, 0.5f, vec3(1.0f, 0.7f, 0.0f));
 
 
 
