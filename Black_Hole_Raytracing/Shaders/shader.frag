@@ -44,6 +44,7 @@ struct Plane
 {
 	vec3 center;
 	vec3 normal;
+	vec3 color;
 };
 
 struct Disk
@@ -52,6 +53,7 @@ struct Disk
 	vec3 normal;
 	float radiusOuter;
 	float radiusInner;
+	vec3 color;
 };
 
 struct Sphere
@@ -172,7 +174,7 @@ Intersection intersectPlane(vec3 rayOrigin, vec3 rayDirection, float maxDist, Pl
 	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
 
 	float denominator = dot(rayDirection, plane.normal);
-	if (denominator < 0.000001f)
+	if (abs(denominator) < 0.000001f)
 	{
 		return result;
 	}
@@ -180,12 +182,13 @@ Intersection intersectPlane(vec3 rayOrigin, vec3 rayDirection, float maxDist, Pl
 	vec3 rayOriginToPlaneCenter = plane.center - rayOrigin;
 	float dist = dot(rayOriginToPlaneCenter, plane.normal) / denominator;
 
-	if (dist < 0 || dist > maxDist)
+	if (dist < -0.1f || dist > maxDist)
 	{
 		return result;
 	}
 
 	result.isIntersect = true;
+	result.dist = dist;
 	result.intersection = rayOrigin + dist * rayDirection;
 	result.normal = plane.normal;
 	return result;
@@ -243,7 +246,7 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, S
 void propagateRay(inout Ray ray, float dist)
 {
 	float effectiveMass = 0.01f;
-	float coefficient = 0.5f * (1.0f + sin(0.5 * time));
+	float coefficient = 1.5f * (1.0f + sin(0.5 * time));
 	vec3 blackHoleCenter = vec3(0.0f, 0.0f, 10.0f);
 
 	vec3 rayOriginToBlackHole = blackHoleCenter - ray.origin;
@@ -265,13 +268,19 @@ float calculateStepLength(Ray ray)
 
 void main()
 {
-	const int NUM_SPHERES = 5;
-	Sphere spheres[NUM_SPHERES];
-	spheres[0] = Sphere(vec3(2.0f, -1.0f, 20.0f), 1.5f, false, vec3(1.0f, 0.0f, 0.0f));
-	spheres[1] = Sphere(vec3(-2.0f, -1.5f, 25.0f), 1.0f, false, vec3(0.0f, 1.0f, 0.0f));
-	spheres[2] = Sphere(vec3(0.0f, 0.0f, 10.0f), 0.5f, false, vec3(0.0f, 0.0f, 0.0f));
-	spheres[3] = Sphere(vec3(1.0f, 1.0f, 25.0f), 3.0f, true, vec3(1.0f, 1.0f, 1.0f));
-	spheres[4] = Sphere(vec3(10.0f, -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
+//	const int NUM_SPHERES = 5;
+//	Sphere spheres[NUM_SPHERES];
+//	spheres[0] = Sphere(vec3(2.0f, -1.0f, 20.0f), 1.5f, false, vec3(1.0f, 0.0f, 0.0f));
+//	spheres[1] = Sphere(vec3(-2.0f, -1.5f, 25.0f), 1.0f, false, vec3(0.0f, 1.0f, 0.0f));
+//	spheres[2] = Sphere(vec3(0.0f, 0.0f, 10.0f), 0.5f, false, vec3(0.0f, 0.0f, 0.0f));
+//	spheres[3] = Sphere(vec3(1.0f, 1.0f, 25.0f), 3.0f, true, vec3(1.0f, 1.0f, 1.0f));
+//	spheres[4] = Sphere(vec3(10.0f, -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
+
+	const int NUM_DISKS = 1;
+	Disk disks[NUM_DISKS];
+	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.0f, sin(time), cos(time))), 1.5f, 0.5f, vec3(1.0f, 0.7f, 0.0f));
+
+
 
 	vec3 finalColor = vec3(0.0f);
 
@@ -296,10 +305,15 @@ void main()
 			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
 			float dist = calculateStepLength(ray);
 
-			Sphere closestSphere;
-			for (int sphereIndex = 0; sphereIndex < NUM_SPHERES; sphereIndex++)
+			// Sphere closestSphere;
+			// for (int sphereIndex = 0; sphereIndex < NUM_SPHERES; sphereIndex++)
+			// {
+			//	Intersection intersection = intersectSphere(ray.origin, ray.direction, dist, spheres[sphereIndex]);
+
+			Disk closestDisk;
+			for (int diskIndex = 0; diskIndex < NUM_DISKS; diskIndex++)
 			{
-				Intersection intersection = intersectSphere(ray.origin, ray.direction, dist, spheres[sphereIndex]);
+				Intersection intersection = intersectDisk(ray.origin, ray.direction, dist, disks[diskIndex]);
 				if (!intersection.isIntersect)
 				{
 					continue;
@@ -308,7 +322,8 @@ void main()
 				if (closestIntersection.dist > intersection.dist)
 				{
 					closestIntersection = intersection;
-					closestSphere = spheres[sphereIndex];
+					// closestSphere = spheres[sphereIndex];
+					closestDisk = disks[diskIndex];
 				}
 			}
 	
@@ -319,13 +334,15 @@ void main()
 			}
 
 		    ray.totalIntersections++;
-		    ray.color += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
+		    // ray.color += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
 	
-		    if (closestSphere.isLightSource)
-		    {
-		        ray.color = absorptionFactor * closestSphere.color;
-		        break;
-		    }
+		    // if (closestSphere.isLightSource)
+		    // {
+		    //     ray.color = absorptionFactor * closestSphere.color;
+		    //     break;
+		    // }
+
+		    ray.color += AMBIENT_FACTOR * absorptionFactor * closestDisk.color;
 		    
 		    absorptionFactor *= absorptionFactor;
 		    dist = distance(closestIntersection.intersection, ray.origin);
