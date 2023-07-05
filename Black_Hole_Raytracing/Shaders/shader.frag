@@ -1,6 +1,9 @@
 #version 330 core
+in vec2 textureCoords;
+
 out vec4 fragColor;
 
+uniform sampler2D textureSampler;
 uniform float screenWidth;
 uniform float screenHeight;
 uniform float time;
@@ -13,14 +16,6 @@ const int MAX_STEPS = 1000;
 const float MAX_DIST = 100.0f;
 const float AMBIENT_FACTOR = 0.5f;
 const float SCATTERING_FACTOR = 0.8f;
-
-vec3 getRayDirection()
-{
-	float relX = 2.0f * (gl_FragCoord.x / screenWidth - 0.5f);
-	float relY = 2.0f * (gl_FragCoord.y / screenWidth - 0.5f);
-	float fovFactor = 0.3f;
-	return normalize(vec3(fovFactor * relX, fovFactor * relY, 1.0f));
-}
 
 struct Ray
 {
@@ -243,6 +238,14 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, S
 	return result;
 }
 
+vec3 getRayDirection()
+{
+	float relX = 2.0f * (gl_FragCoord.x / screenWidth - 0.5f);
+	float relY = 2.0f * (gl_FragCoord.y / screenWidth - 0.5f);
+	float fovFactor = 0.3f;
+	return normalize(vec3(fovFactor * relX, fovFactor * relY, 1.0f));
+}
+
 void propagateRay(inout Ray ray, float dist)
 {
 	float effectiveMass = 0.001f;
@@ -283,7 +286,7 @@ void main()
 //	spheres[2] = Sphere(vec3(0.0f, 0.0f, 10.0f), 0.5f, false, vec3(0.0f, 0.0f, 0.0f));
 //	spheres[3] = Sphere(vec3(1.0f, 1.0f, 25.0f), 3.0f, true, vec3(1.0f, 1.0f, 1.0f));
 //	spheres[4] = Sphere(vec3(10.0f, -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
-
+	
 	const int NUM_DISKS = 1;
 	Disk disks[NUM_DISKS];
 	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.0f, sin(0.3f * time), cos(0.3f * time))), 1.5f, 0.5f, vec3(1.0f, 0.7f, 0.0f));

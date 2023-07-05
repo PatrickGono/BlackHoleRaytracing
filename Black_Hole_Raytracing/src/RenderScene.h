@@ -15,15 +15,13 @@ private:
 	static constexpr int SCREEN_WIDTH{1024};
 	static constexpr int SCREEN_HEIGHT{1024};
 
-	std::vector<float> m_data; //
-	Texture m_texture; //
+	std::vector<float> m_data;
+	Texture m_texture;
 
 public:
 	RenderScene();
 	void render();
 	bool getShouldClose();
-
-	void renderTexture(); //
-	void renderTextureCPU(); //
+	void setTexture();
 };
 
