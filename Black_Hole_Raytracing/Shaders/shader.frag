@@ -33,6 +33,7 @@ struct Intersection
 	float dist;
 	vec3 intersection;
 	vec3 normal;
+	vec2 textureCoords;
 };
 
 struct Plane
@@ -91,7 +92,7 @@ vec3 randomDirectionSphere(vec3 rayDirection, float seed)
 
 Intersection intersectPlane(vec3 rayOrigin, vec3 rayDirection, float maxDist, Plane plane)
 {
-	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f), vec2(0.0f));
 
 	float denominator = dot(rayDirection, plane.normal);
 	if (abs(denominator) < 0.000001f)
@@ -129,18 +130,24 @@ Intersection intersectDisk(vec3 rayOrigin, vec3 rayDirection, float maxDist, Dis
 	
 	vec3 intersectionToDiskCenter = disk.center - result.intersection;
 	float distToCenter = length(intersectionToDiskCenter);
-
+	
 	if (distToCenter < disk.radiusInner || distToCenter > disk.radiusOuter)
 	{
-		return Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+		return Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f), vec2(0.0f));
 	}
+
+	vec3 up = vec3(0.0f, 1.0f, 0.0f);
+	vec3 side = normalize(cross(disk.normal, up));
+	float radialPos = distToCenter / disk.radiusOuter;
+	float angularPos = acos(dot(normalize(intersectionToDiskCenter), side));
+	result.textureCoords = vec2(0.5f + 0.5f * radialPos * sin(angularPos), 0.5f + 0.5f * radialPos * cos(angularPos));
 
 	return result;
 }
 
 Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, Sphere sphere)
 {
-	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+	Intersection result = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f), vec2(0.0f));
 
 	vec3 sphereCenterToOrigin = rayOrigin - sphere.center;
 	float product = dot(rayDirection, sphereCenterToOrigin);
@@ -238,7 +245,7 @@ void main()
 				break;
 			}
 
-			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f));
+			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f), vec2(0.0f));
 			float dist = calculateStepLength(ray);
 
 			// Sphere closestSphere;
@@ -278,7 +285,8 @@ void main()
 		    //     break;
 		    // }
 
-		    ray.color += AMBIENT_FACTOR * absorptionFactor * closestDisk.color;
+		    // ray.color += AMBIENT_FACTOR * absorptionFactor * closestDisk.color;
+		    ray.color += texture(textureSampler, closestIntersection.textureCoords).xyz;
 		    
 		    absorptionFactor *= absorptionFactor;
 		    dist = distance(closestIntersection.intersection, ray.origin);
