@@ -13,7 +13,7 @@ RenderScene::RenderScene()
 	m_window->initialize();
 
 	// initialize texture
-	m_texture = Texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+	m_texture = Texture("Resources/Textures/accretion_disk_1024.png");
 	m_texture.initializeTexture();
 
 	// create shaders
@@ -43,7 +43,6 @@ void RenderScene::render()
 
 	m_shaders[0]->useShader();
 	m_shaders[0]->setFloat("time", static_cast<float>(glfwGetTime()));
-	setTexture();
 	m_texture.useTexture();
 	m_sceneMesh.renderMesh();
 
@@ -55,15 +54,4 @@ bool RenderScene::getShouldClose()
 	return m_window->getShouldClose();
 }
 
-void RenderScene::setTexture()
-{
-	size_t i = 0;
-	for (auto value : m_data)
-	{
-		m_texture[i + 0] = (unsigned char)(value * 255.0f);
-		m_texture[i + 1] = (unsigned char)(value * 255.0f);
-		m_texture[i + 2] = (unsigned char)(value * 255.0f);
-		i += 3;
-	}
-	m_texture.setTexture();
-}
+

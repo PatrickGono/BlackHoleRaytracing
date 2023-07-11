@@ -1,14 +1,15 @@
-#include "Texture.h"
+#include <iostream>
 
-Texture::Texture() : m_width(0), m_height(0), m_textureID(0), m_textureData(0)
+#define STB_IMAGE_IMPLEMENTATION
+#include "Texture.h"
+#include "stb_image.h"
+
+Texture::Texture() : Texture("")
 {
-	initializeTexture();
 }
 
-Texture::Texture(int width, int height) : m_width(width), m_height(height), m_textureID(0), m_textureData(0)
+Texture::Texture(const std::string& textureFileName) : m_textureFileName(textureFileName), m_width(0), m_height(0), m_textureID(0)
 {
-	initializeTexture();
-	m_textureData = std::vector<unsigned char>(width * height * 3, 0);
 }
 
 Texture::~Texture()
@@ -26,16 +27,25 @@ void Texture::initializeTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	int comp{0};
+	unsigned char* data = stbi_load(m_textureFileName.c_str(), &m_width, &m_height, &comp, STBI_rgb);
+	if (data == nullptr)
+	{
+		std::cout << "could not load texture: " << m_textureFileName << "\n";
+		m_width = 1;
+		m_height = 1;
+		unsigned char placeholder[3] = {255, 0, 255};
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, placeholder);
+	}
+	else
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::setTexture()
-{
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, m_textureData.data());
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
 
 void Texture::useTexture()
 {
