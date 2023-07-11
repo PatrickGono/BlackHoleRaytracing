@@ -151,17 +151,22 @@
     <ClCompile Include="src\FPSCounter.cpp" />
     <ClCompile Include="src\BlackHole.cpp" />
     <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\RenderScene.h" />
     <ClInclude Include="src\FPSCounter.h" />
+    <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\shader.vert" />
     <None Include="Shaders\shader.frag" />
+    <None Include="Shaders\shaderTexture.vert" />
+    <None Include="Shaders\shaderTexture.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

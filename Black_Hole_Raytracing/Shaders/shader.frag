@@ -49,7 +49,6 @@ struct Disk
 	vec3 normal;
 	float radiusOuter;
 	float radiusInner;
-	vec3 color;
 };
 
 struct Sphere
@@ -139,7 +138,12 @@ Intersection intersectDisk(vec3 rayOrigin, vec3 rayDirection, float maxDist, Dis
 	vec3 up = vec3(0.0f, 1.0f, 0.0f);
 	vec3 side = normalize(cross(disk.normal, up));
 	float radialPos = distToCenter / disk.radiusOuter;
-	float angularPos = acos(dot(normalize(intersectionToDiskCenter), side));
+
+	vec3 intersectionDirection = normalize(intersectionToDiskCenter);
+	float det = dot(disk.normal, cross(side, intersectionDirection));
+	float dotProduct = dot(side, normalize(intersectionDirection));
+	float angularPos = atan(det, dotProduct) + 2.0f * PI * fract(0.05f * time);
+
 	result.textureCoords = vec2(0.5f + 0.5f * radialPos * sin(angularPos), 0.5f + 0.5f * radialPos * cos(angularPos));
 
 	return result;
@@ -199,7 +203,7 @@ float calculateStepLength(Ray ray)
 {
 	vec3 blackHoleCenter = vec3(0.0f, 0.0f, 10.0f);
 	float effectiveMass = 0.1f;
-	float coefficient = 0.1f; // * (1.0f + sin(0.5 * time));
+	float coefficient = 0.1f; 
 
 	vec3 rayOriginToBlackHole = blackHoleCenter - ray.origin;
 	float distBH = length(rayOriginToBlackHole);
@@ -221,10 +225,8 @@ void main()
 	
 	const int NUM_DISKS = 1;
 	Disk disks[NUM_DISKS];
-	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.0f, sin(0.3f * time), cos(0.3f * time))), 1.5f, 0.5f, vec3(1.0f, 0.7f, 0.0f));
-
-
-
+	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.2f, 0.8f, -0.15f)), 2.5f, 0.3f);
+	
 	vec3 finalColor = vec3(0.0f);
 
 	for (int rayIndex = 0; rayIndex < NUM_AVERAGE; rayIndex++)
