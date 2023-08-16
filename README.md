@@ -10,4 +10,4 @@ GLM: https://github.com/g-truc/glm/
 GLFW: https://www.glfw.org/
 
 ## Example
-<img src="Black_Hole_Raytracing/Resources/example.png" width="1080" height="620">
+<img src="Black_Hole_Raytracing/Resources/example.png" width="960" height="540">
