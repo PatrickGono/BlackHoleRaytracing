@@ -215,14 +215,6 @@ float calculateStepLength(Ray ray)
 
 void main()
 {
-//	const int NUM_SPHERES = 5;
-//	Sphere spheres[NUM_SPHERES];
-//	spheres[0] = Sphere(vec3(2.0f, -1.0f, 20.0f), 1.5f, false, vec3(1.0f, 0.0f, 0.0f));
-//	spheres[1] = Sphere(vec3(-2.0f, -1.5f, 25.0f), 1.0f, false, vec3(0.0f, 1.0f, 0.0f));
-//	spheres[2] = Sphere(vec3(0.0f, 0.0f, 10.0f), 0.5f, false, vec3(0.0f, 0.0f, 0.0f));
-//	spheres[3] = Sphere(vec3(1.0f, 1.0f, 25.0f), 3.0f, true, vec3(1.0f, 1.0f, 1.0f));
-//	spheres[4] = Sphere(vec3(10.0f, -1000.0f, 0.0f), 996.5f, false, vec3(0.4f, 0.45f, 0.7f));
-	
 	const int NUM_DISKS = 1;
 	Disk disks[NUM_DISKS];
 	disks[0] = Disk(vec3(0.0f, 0.0f, 10.0f), normalize(vec3(0.2f, 0.8f, -0.15f)), 2.5f, 0.3f);
@@ -250,11 +242,6 @@ void main()
 			Intersection closestIntersection = Intersection(false, MAX_DIST, vec3(0.0f), vec3(0.0f), vec2(0.0f));
 			float dist = calculateStepLength(ray);
 
-			// Sphere closestSphere;
-			// for (int sphereIndex = 0; sphereIndex < NUM_SPHERES; sphereIndex++)
-			// {
-			//	Intersection intersection = intersectSphere(ray.origin, ray.direction, dist, spheres[sphereIndex]);
-
 			Disk closestDisk;
 			for (int diskIndex = 0; diskIndex < NUM_DISKS; diskIndex++)
 			{
@@ -267,7 +254,6 @@ void main()
 				if (closestIntersection.dist > intersection.dist)
 				{
 					closestIntersection = intersection;
-					// closestSphere = spheres[sphereIndex];
 					closestDisk = disks[diskIndex];
 				}
 			}
@@ -279,15 +265,6 @@ void main()
 			}
 
 		    ray.totalIntersections++;
-		    // ray.color += AMBIENT_FACTOR * absorptionFactor * closestSphere.color;
-	
-		    // if (closestSphere.isLightSource)
-		    // {
-		    //     ray.color = absorptionFactor * closestSphere.color;
-		    //     break;
-		    // }
-
-		    // ray.color += AMBIENT_FACTOR * absorptionFactor * closestDisk.color;
 		    ray.color += texture(textureSampler, closestIntersection.textureCoords).xyz;
 		    
 		    absorptionFactor *= absorptionFactor;
