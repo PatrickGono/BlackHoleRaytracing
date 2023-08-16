@@ -10,4 +10,4 @@ GLM: https://github.com/g-truc/glm/
 GLFW: https://www.glfw.org/
 
 ## Example
-<img src="Docs/benzene.png" width="600" height="468">
+<img src="Black_Hole_Raytracing/Resources/example.png" width="1080" height="620">
