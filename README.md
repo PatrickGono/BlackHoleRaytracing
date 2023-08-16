@@ -10,4 +10,4 @@ GLM: https://github.com/g-truc/glm/
 GLFW: https://www.glfw.org/
 
 ## Example
-<img src="Docs/benzene.png" width="600" height="468">
+<img src="Resources/example.png" width="600" height="468">
