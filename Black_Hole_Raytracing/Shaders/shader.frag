@@ -177,7 +177,7 @@ Intersection intersectSphere(vec3 rayOrigin, vec3 rayDirection, float maxDist, S
 vec3 getRayDirection()
 {
 	float relX = 2.0f * (gl_FragCoord.x / screenWidth - 0.5f);
-	float relY = 2.0f * (gl_FragCoord.y / screenWidth - 0.5f);
+	float relY = 2.0f * (gl_FragCoord.y / screenWidth - 0.3f);
 	float fovFactor = 0.3f;
 	return normalize(vec3(fovFactor * relX, fovFactor * relY, 1.0f));
 }

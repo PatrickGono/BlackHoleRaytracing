@@ -12,8 +12,8 @@ private:
 	std::vector<std::unique_ptr<Shader>> m_shaders;
 	Mesh m_sceneMesh;
 
-	static constexpr int SCREEN_WIDTH{1024};
-	static constexpr int SCREEN_HEIGHT{1024};
+	static constexpr int SCREEN_WIDTH{1920};
+	static constexpr int SCREEN_HEIGHT{1080};
 
 	std::vector<float> m_data;
 	Texture m_texture;

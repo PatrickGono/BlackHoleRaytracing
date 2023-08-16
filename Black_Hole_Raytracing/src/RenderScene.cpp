@@ -18,7 +18,6 @@ RenderScene::RenderScene()
 
 	// create shaders
 	m_shaders.emplace_back(std::make_unique<Shader>("Shaders/shader.vert", "Shaders/shader.frag"));
-	m_shaders.emplace_back(std::make_unique<Shader>("Shaders/shaderTexture.vert", "Shaders/shaderTexture.frag"));
 
 	// set up mesh for screen rectangle
 	 std::vector<GLfloat> vertices = { -1.0f, -1.0f, -1.0f,    0.0f, 0.0f,
